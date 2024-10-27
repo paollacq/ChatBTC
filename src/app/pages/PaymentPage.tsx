@@ -9,7 +9,6 @@ const user = "user1";  // Usuário logado
 const PaymentPage: React.FC = () => {
   return (
     <div>
-      <Payment paymentHash={paymentHash} qrCode={qrCode} user={user} />
     </div>
   );
 };

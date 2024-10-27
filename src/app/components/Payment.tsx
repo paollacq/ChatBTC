@@ -1,54 +1,45 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 
-// Definição das props que serão passadas ao componente
 interface PaymentProps {
-  paymentHash: string;
+  paymentId: string;
   qrCode: string;
   user: string;
 }
 
-// Componente de pagamento que exibe o QR code e verifica o status do pagamento
-const Payment: React.FC<PaymentProps> = ({ paymentHash, qrCode, user }) => {
+const Payment: React.FC<PaymentProps> = ({ paymentId, qrCode, user }) => {
   const [paymentStatus, setPaymentStatus] = useState<string>("Waiting for Payment...");
 
-  // Função para verificar o status do pagamento chamando o backend
+  // Check payment status by calling the back-end every 10 seconds
   const checkPaymentStatus = async () => {
     try {
-      const response = await axios.post("/verificar_pagamento", {
-        payment_hash: paymentHash,
-        usuario: user,
+      const response = await axios.post("/check_payment", {
+        payment_id: paymentId,
+        user: user,
       });
-      if (response.data.status === "Pagamento confirmado") {
+      if (response.data.status === "Payment confirmed") {
         setPaymentStatus("Payment confirmed! Redirecting...");
-        // Redirecionar o usuário de volta ao chat após o pagamento ser confirmado
         setTimeout(() => {
           window.location.href = "/chat";
-        }, 2000);
+        }, 2000);  // Redirect after 2 seconds
       } else {
         setPaymentStatus("Waiting for Payment...");
       }
     } catch (error) {
-      console.error("Error checking payment status", error);
-      setPaymentStatus("Error verifying payment");
+      setPaymentStatus("Error checking payment status");
     }
   };
 
-  // UseEffect para verificar o pagamento a cada 10 segundos
   useEffect(() => {
-    const interval = setInterval(checkPaymentStatus, 10000); // 10 segundos
-    return () => clearInterval(interval); // Limpa o intervalo quando o componente é desmontado
+    const interval = setInterval(checkPaymentStatus, 10000); // Poll every 10 seconds
+    return () => clearInterval(interval); // Cleanup on unmount
   }, []);
 
   return (
     <div>
-      <h1>Buy More Messages</h1>
-      <p>Scan the QR code below to pay and receive more messages.</p>
-
-      <div>
-        <img src={`data:image/png;base64,${qrCode}`} alt="QR Code" />
-      </div>
-
+      <h1>Purchase More Messages</h1>
+      <p>Scan the QR code below to pay for more messages:</p>
+      <img src={`data:image/png;base64,${qrCode}`} alt="QR Code" />
       <h3>{paymentStatus}</h3>
     </div>
   );
